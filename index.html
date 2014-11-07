@@ -1,0 +1,178 @@
+<!DOCTYPE html> 
+<html> 
+<head> 
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" /> 
+    <title>Mapping Twitter</title> 
+    
+    <link href="css/style.css" type="text/css" rel="stylesheet"> 
+    <!-- google maps key for ucla.edu
+    	ABQIAAAAtHf2Vbojx_f9l2digk62nRTjm4QvTnLDkHQM-IqCQznurKqyDRRj2NhK09YmawXPph88WcOsIsF9hA
+    -->
+    <!-- 
+    <script type="text/javascript" src="http://www.google.com/jsapi?key=ABQIAAAAtHf2Vbojx_f9l2digk62nRR721nvlaDHrh7xkOtCxSM-c80RpRRMoUR4qEAqmJpECcqpdsdEs7YdIw&autoload={'modules':[{name:'maps',version:3,other_params:'sensor=false'},{'name':'jquery','version':'1.4.2'}]}"></script> 
+     -->
+    <!-- Google Maps API -->
+    <script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?sensor=false"></script>
+    <script type="text/javascript" src="http://maps.stamen.com/js/tile.stamen.js?v1.2.3"></script>
+
+    <!-- jQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+     <!-- 
+    <script type="text/javascript" src="js/googleearth.js"></script> 
+     -->
+
+	<!-- Bootstrap -->
+    <link href="bootstrap/css/bootstrap.min.css" type="text/css" rel="stylesheet"> 
+    <script type="text/javascript" src="bootstrap/js/bootstrap.min.js"></script> 
+        
+    <script type="text/javascript" src="js/distancewidget.js"></script> 
+    <script type="text/javascript" src="js/twitter.js"></script> 
+    <script type="text/javascript" src="js/timeago.js"></script> 
+	<script src="js/centerIt.js" type="text/javascript"></script>
+    <script type="text/javascript">
+		$(document).ready(function() {
+			$("abbr.timeago").timeago();
+		});
+		 //$("abbr.timeago").timeago();
+		 
+			 
+    </script>
+
+</head> 
+<body> 
+
+    <style type="text/css">
+    .timeago {
+        color:#F30
+    }
+    a {
+        text-decoration:none;
+        color:red;
+    }
+    /*bootstrap fix*/
+    #map img { 
+      max-width: none;
+    }
+
+    #map label { 
+      width: auto; display:inline; 
+    } 
+    </style>
+
+
+	<!-- full screen div -->
+    <div id="fullscreen" style="position:absolute; top:0; left:0; width:100%; height:100%; background:black;opacity: 0.8;filter: alpha(opacity=80); z-index:19; " onclick="$('#about').fadeOut();$(this).fadeOut();"></div>
+
+    <!-- About -->
+	<div id="about" class="rounded-corners">
+        <div style="float:right" onclick="$('#about').fadeOut();$('#fullscreen').fadeOut();">
+        	<img src="images/close.png" border="0" onmouseover="$(this).css('cursor','pointer')" />
+        </div>
+    	<h1>The What and Where of Twitter</h1>
+		<span style=" font-style:italic;color:gray; ">Find out what people are talking about... anywhere in the world</span>
+        <div style="background-color:gainsboro; padding:20px; font-size:20px">
+			Start 
+
+            <form class="form-inline">
+                <input type="text" class="input-medium" id="q_start" placeholder="What? ex: Obama">
+                <input type="text" class="input-large" id="geocode" placeholder="Where? ex: Los Angeles">
+            </form>
+            <!-- <input class="input" type="search" value="" id="geocode" style="font-size:20px">
+            <input class="input" type="search" value="" id="geocode" style="font-size:20px"> -->
+            <br><span style=" font-style:italic;color:gray; ">ex: <a href="javascript:void(0)" onClick="geocode('Hollywood, Los Angeles')">Los Angeles</a>, <a href="javascript:void(0)" onClick="geocode('Tokyo')">Tokyo</a></span>
+		</div>        
+        <table style="padding:10px">
+        <tr>
+        	<td align="center">
+				<img src="images/center.png">
+			</td>
+			<td>
+		        Grab and move the pin to search for tweets centered around that area
+			</td>
+        </tr>        
+        <tr>
+        	<td align="center">
+				 <img src="images/resize.png" style="padding:8px;">
+			</td>
+			<td>
+		         Grab this handle and move it left or right to resize the search buffer
+			</td>
+        </tr>        
+        <tr>
+        	<td align="center">
+				 <img src="images/searchbutton.jpg" align="absmiddle" width="50">
+			</td>
+			<td>
+		         Enter a search parameter to further narrow your scope
+			</td>
+        </tr>        
+       
+       </table>
+        <p>
+		<!--<iframe src="http://www.screenr.com/embed/cG7s" width="650" height="396" frameborder="0"></iframe>-->
+		<br>
+        This website was created by <a href="http://gis.yohman.com">Yoh Kawano</a> from the <a href="http://www.digitalhumanities.ucla.edu" class="darklink" target="_blank">UCLA Digital Humanities collaborative</a>
+        </p>
+    </div>
+    
+    <div style="clear:both" id="search"> 
+        <div id="help" style="float:right; padding:20px;" onClick="$('#about').fadeIn();$('#fullscreen').fadeIn();">
+        	<img src="images/info.png" class="opacity80" width="30">
+        </div>
+        <span class="form-inline">
+            <img src="http://cdn1.iconfinder.com/data/icons/Upojenie_by_SoundForge/Icons/Maps.png" align="absmiddle">
+            <label >Search twitter for</label> 
+            <input type="text" value=" " id="q" class="input-medium" /> 
+            <label >within <span id="dist"></span> km of </label> 
+            <input type="text" class="input-large" id="of" />
+            <input type="submit" value="Search!" id="btn" class="btn btn-inverse" onClick="start();"/> 
+        </span>
+
+        <!-- <div> 
+        	<img src="http://cdn1.iconfinder.com/data/icons/Upojenie_by_SoundForge/Icons/Maps.png" align="absmiddle">
+            <label style="float:left;">Search twitter for</label> 
+            <input style="float:left;" type="search" value=" " id="q" class="span3" /> 
+            <label style="float:left;">within <span id="dist"></span> km of <input style="float:left;" class="span3" id="of" /></label> 
+            <input style="float:left;" type="submit" value="Search!" id="btn" class="btn btn-inverse" onClick="start();"/> 
+        </div>  -->
+
+    </div> 
+    
+    <div id="cols"> 
+        <div id="map-wrapper"> 
+        	<div id="map"></div> 
+        </div> 
+        
+        <div id="results-wrapper"> 
+            <a href="#" id="close">x</a>
+            <div id="status">Status...</div>
+            <div id="results"></div> 
+        </div> 
+    </div> 
+
+    <script>
+		$('#about').CenterIt();
+
+		var resizeHC = function () {
+			// fudge factor to compensate
+			var	divsHeight = 100;
+			divsHeight += $("#search").height();
+			var newHeight = $(window).height() - divsHeight;
+			$("#map").height(newHeight);
+			$("#results").height(newHeight-20);
+		}
+		resizeHC();
+		$(window).resize(resizeHC);
+
+		//allow pressing "enter"
+		$('#geocode').keypress(function(e) {
+			if(e.which == 13) {
+				geocode();
+			}
+		});
+		document.getElementById("geocode").focus();
+	</script>
+    
+
+</body> 
+</html> 

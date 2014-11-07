@@ -1,0 +1,206 @@
+<!doctype html>
+<html>
+<head>
+<title>Twitter...</title>
+<style>
+	.tweetbox { float:left; width: 200px;margin-right: 10px;}
+	.tweet-date { font-size: 10px; color:red;}
+        html { height: 100% }
+        body { height: 100%; margin: 0px; padding: 0px }
+
+    #map_canvas { height: 100% }
+
+.navbar {
+    position: fixed !important;
+    top: 0px;
+    width: 940px;
+    margin-right: auto;
+    margin-left: auto;
+}
+.navbar-form {
+    margin-left: 20px;
+}
+#display {
+    margin-top: 80px;
+}
+img {
+    padding:10px;
+}
+	body {margin:20px;background:#444;}
+</style>
+<meta charset="utf-8">
+
+<!-- jQuery -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+
+<!-- bootstrap -->
+<link rel="stylesheet" type="text/css" href="http://whippet.ats.ucla.edu/2013/yoh/bootstrap/css/bootstrap.min.css" />
+<script src="http://whippet.ats.ucla.edu/2013/yoh/bootstrap/js/bootstrap.min.js"></script>
+
+<!-- jqueryui -->
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.js"></script>
+<link rel="stylesheet" type="text/css" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/ui-lightness/jquery-ui.css"/>
+
+<script>
+// Your JavaScript code will go here
+
+window.onload = function() {
+
+    //allow pressing "enter"
+    $('#screen_name').keypress(function(e) {
+        if(e.which == 13) {
+            e.preventDefault();
+            getTweets();
+        }
+    });
+    // set up the click handler for the form button
+    var button = document.getElementById("submit");
+    button.onclick = getTweets;
+
+}
+
+// when you click "Get Tweets" we call this function
+var counter = 1;
+function getTweets() {
+    
+
+    //clear tweets
+    // $('#display').html('');
+
+    // we're calling search.php and passing in a query string
+    var url = "searchuser.php?screen_name=";
+    var screen_name = $('#screen_name').val();
+    if (!screen_name) {
+        screen_name = "yohman";
+    }
+
+    // we encode the query to handle any special characters properly
+    url += encodeURIComponent(screen_name);
+
+    if(max_id !== undefined)
+    {
+        url += '&max_id='+max_id;
+    }
+
+    cur_url = url;
+
+    $.getJSON(url,function(data){
+        cur_data=data;
+        $('.navbar-inner').append('<img class="img-circle" src="'+data[0].user.profile_image_url+'">');
+        $.each(data, function(i,val){
+            $('#display').prepend(counter+'<div class="well ">'+val.text+'<div class="tweet-date">'+val.created_at+'</div></div>');
+            $( ".tweetbox" ).draggable();
+            counter++;
+        })
+        max_id = cur_data[cur_data.length-1].id;
+
+    })
+}
+
+var cur_data,next_url,prev_url;
+var max_id,since_id;
+// when you click "Get Tweets" we call this function
+function getNextTweets() {
+    
+    //clear tweets
+    $('#display').html('');
+
+    // we're calling search.php and passing in a query string
+    var url = "searchuser.php?screen_name=";
+    var screen_name = $('#screen_name').val();
+    if (!screen_name) {
+        screen_name = "yohman";
+    }
+
+    // we encode the query to handle any special characters properly
+    url += encodeURIComponent(screen_name);
+    max_id = cur_data[cur_data.length-1].id;
+    url += '&max_id='+max_id;
+    next_url = url;
+    cur_url = url;
+
+    $.getJSON(url,function(data){
+        cur_data=data;
+
+        $.each(data, function(i,val){
+            $('#display').append('<div class="well ">'+val.text+'<div class="tweet-date">'+val.created_at+'</div></div>');
+            $( ".tweetbox" ).draggable();
+        })
+    })
+}
+
+function getPrevTweets() {
+    
+    //clear tweets
+    $('#display').html('');
+
+    // we're calling search.php and passing in a query string
+    var url = "searchuser.php?screen_name=";
+    var screen_name = $('#screen_name').val();
+    if (!screen_name) {
+        screen_name = "yohman";
+    }
+
+    // we encode the query to handle any special characters properly
+    url += encodeURIComponent(screen_name);
+    since_id = cur_data[cur_data.length-1].id;
+    url += '&since_id='+since_id;
+    prev_url = url;
+    cur_url = url;
+
+    $.getJSON(url,function(data){
+        cur_data=data;
+
+        $.each(data, function(i,val){
+            $('#display').append('<div class="well ">'+val.text+'<div class="tweet-date">'+val.created_at+'</div></div>');
+            $( ".tweetbox" ).draggable();
+        })
+    })
+}
+
+function displayTweets(tweets) {
+    // tweets is a big long string, so we need to parse it 
+    // into JSON first
+    console.log(tweets)
+    return false;
+    tweets = JSON.parse(tweets);
+    var ul = document.querySelector("ul");
+    // clear existing tweets from list
+    while (ul.hasChildNodes()) {
+        ul.removeChild(ul.lastChild);
+    }
+    // add new tweets
+    for (var i = 0; i < tweets.length; i++) {
+        var li = document.createElement("li");
+        li.innerHTML = tweets[i].tweet;
+        ul.appendChild(li);
+    }
+}
+
+function viewSource() {
+    window.open(cur_url);
+}
+</script>
+</head>
+<body>
+
+	<div class="container">
+        <div class="navbar navbar-fixed-top navbar-inverse">
+            <div class="navbar-inner">
+
+                <span class="navbar-form pull-left">
+                    <input id="screen_name" type="text" class="span2">
+                    <button class="btn" id="submit" onclick="getTweets()">get tweets by username</button>
+                    <button class="btn btn-info" id="next" onclick="getTweets()">next</button>
+                    <button class="btn btn-info" id="source" onclick="viewSource()">view source</button>
+
+                </span>
+            </div>
+        </div>
+    	<div id="display">
+        </div>
+
+
+	</div>
+</body>
+</html>
